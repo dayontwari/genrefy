@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+# filename: genrefy
+# description: Edit id3 genre attributes, and optionally move audio files to correct genre folders.
+# fileversion: 0.1
+# date: 20160309
+# author: Dayo Ntwari
+# email: dayontwari@gmail.com
+# license: GPLv3
+# python version: 2.7.6
+
+import argparse
+from mutagen.easyid3 import EasyID3
+import mimetypes
+import os
+import shutil
+from sys import argv as userArgs
+import unicodedata
+import urllib
+
+def isAudio(aFile, cwd):
+    """ Check if file is audio file. """
+    url = urllib.pathname2url(aFile)
+    filetype = mimetypes.guess_type(url)
+
+    if 'audio/mpeg' in filetype:
+        return aFile
+
+def setGenre(cwd):
+    """ Set the track's ID3 genre attribute. """
+    for aFile in os.listdir(cwd):
+        # Check if file is audio
+        if isAudio(aFile, cwd):
+            track = aFile
+            audioFile = EasyID3(track)
+    
+            gotgenre = ''
+            # Get genre from user input
+            while gotgenre == '':
+                print track
+                gotgenre = raw_input("Enter genre [e.g. 7:Hip-Hop, 9:Metal, 13:Pop,14:R&B,15:Rap,16:Reggae,17:Rock,20:Alternative,26:Ambient,52:Electronic,59:Gangsta Rap,79:Hard Rock,125:Dance Hall,127:Drum & Bass,148:Rock/Pop]: ")
+               
+                # Set genre
+                audioFile['genre'] = u"%s" %(gotgenre)
+                audioFile.save()
+            
+                # Print id3 info for track
+                print "Genre: %s" %(audioFile['genre'])
+                print ''
+
+def moveTrack(cwd):
+    """ Move track to corresponding genre folder. """
+    #musicDir = '/home/dayo/Music/'
+    musicDir = '/home/dayo/tmp/'
+
+    for aFile in os.listdir(cwd):
+     # Check file is audio
+        if isAudio(aFile, cwd):
+            track = aFile
+            audioFile = EasyID3(track)
+            genreDir = musicDir + audioFile['genre'][0].encode('ascii', 'ignore') + '/'
+            # If genre dir doesn't exists, create it.
+            if not os.path.isdir(genreDir):
+                os.makedirs(genreDir)
+            print "audioFile: %s, track: %s, genreDir: %s" %(audioFile, track, genreDir)
+            shutil.copy2(track, genreDir)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--source", help="Source directory containing your audio files (default: cwd).", action="store_true", default=".")
+    parser.add_argument("-m", "--move", help="Move audio files to their respective genre dirs.", action= "store_true")
+
+    args = parser.parse_args()
+
+    absPathSourceDir = '.'
+
+    if args.source:
+        # Expand source path, if necessary.
+        absPathSourceDir = os.path.abspath(os.path.expanduser(args.source))
+        # Check if path exists.
+        if os.path.exists(absPathSourceDir):
+            if args.move:
+                moveTrack(absPathSourceDir)
+            else:
+                setGenre(absPathSourceDir)
+        else:
+            print "ERROR: Source directory %s not found." %(absPathSourceDir)
+
+if __name__ == "__main__":
+    main()

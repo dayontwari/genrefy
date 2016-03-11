@@ -1,0 +1,21 @@
+README
+======
+
+genrefy 0.1
+    Command-line tool to edit id3 genre attributes, and optionally move audio files to correct genre folders.                                 
+Author: Dayo Ntwari <dayontwari@gmail.com>
+
+License: GPLv3
+
+Requirements: 
+		  - python >= 2.7
+		  - python-mutagen
+
+Installation:
+		  1. Copy genrefy file to /usr/local/bin/
+		  2. $ sudo chmod 755 /usr/local/bin/genrefy
+
+Usage:
+		  - genrefy
+
+Feedback:	dayontwari@gmail.com
